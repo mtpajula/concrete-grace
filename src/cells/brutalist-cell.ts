@@ -2,14 +2,14 @@
  * Brutalist Cell - Concrete monoliths that block movement
  */
 
-import { BaseCell, type CellType, type CellRenderInfo, type CellInteractionResult } from './base-cell'
+import { BaseCell, type CellType, type CellRenderInfo, type CellInteractionResult, type CellPosition } from './base-cell'
 import { ASSET_KEYS } from '@/assets/asset-registry'
 
 export class BrutalistCell extends BaseCell {
   private selectedAsset: string
 
-  constructor(q: number, r: number) {
-    super(q, r)
+  constructor(position: CellPosition, id?: string) {
+    super(position, id)
     // Select the asset once when the cell is created
     const brutalistAssets = [ASSET_KEYS.BRUTAL_1, ASSET_KEYS.BRUTAL_2, ASSET_KEYS.BRUTAL_3, ASSET_KEYS.BRUTAL_4]
     this.selectedAsset = brutalistAssets[Math.floor(Math.random() * brutalistAssets.length)]

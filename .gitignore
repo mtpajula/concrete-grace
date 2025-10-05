@@ -99,5 +99,5 @@ temp/
 *.sln
 *.sw?
 
-# Keep dist folder for GitHub Pages deployment
-# dist/ is intentionally not ignored
+# Keep docs folder for GitHub Pages deployment
+# docs/ is intentionally not ignored
