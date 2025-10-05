@@ -5,10 +5,6 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/concrete-grace'
-    },
-    {
-      path: '/concrete-grace',
       name: 'concrete-grace',
       component: () => import('@/components/ConcreteGrace.vue')
     }
