@@ -15,6 +15,8 @@ import brutal2Image from '@/assets/structures/brutal_2.png'
 import brutal3Image from '@/assets/structures/brutal_3.png'
 import brutal4Image from '@/assets/structures/brutal_4.png'
 import playerImage from '@/assets/player.png'
+import startSceneImage from '@/assets/cutscenes/start_scene.png'
+import startCutsceneMusic from '@/assets/start_cutscene.mp3'
 
 /**
  * Asset keys - single source of truth for asset identifiers
@@ -28,7 +30,9 @@ export const ASSET_KEYS = {
   BRUTAL_2: 'brutal_2',
   BRUTAL_3: 'brutal_3',
   BRUTAL_4: 'brutal_4',
-  PLAYER: 'player'
+  PLAYER: 'player',
+  START_SCENE: 'start_scene',
+  START_CUTSCENE_MUSIC: 'start_cutscene_music'
 } as const
 
 /**
@@ -45,6 +49,8 @@ export function registerGameAssets(): void {
   CellAssetLoader.registerAsset(ASSET_KEYS.BRUTAL_3, () => Promise.resolve({ default: brutal3Image }))
   CellAssetLoader.registerAsset(ASSET_KEYS.BRUTAL_4, () => Promise.resolve({ default: brutal4Image }))
   CellAssetLoader.registerAsset(ASSET_KEYS.PLAYER, () => Promise.resolve({ default: playerImage }))
+  CellAssetLoader.registerAsset(ASSET_KEYS.START_SCENE, () => Promise.resolve({ default: startSceneImage }))
+  CellAssetLoader.registerAsset(ASSET_KEYS.START_CUTSCENE_MUSIC, () => Promise.resolve({ default: startCutsceneMusic }))
   
   console.log('Game assets registered with CellAssetLoader')
 }

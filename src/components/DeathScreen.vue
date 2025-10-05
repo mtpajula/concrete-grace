@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 interface DeathScreenProps {
   plantsDestroyed: number
@@ -77,6 +77,43 @@ const emit = defineEmits<{
   restart: []
 }>()
 
+const audioRef = ref<HTMLAudioElement>()
+const audioPlaying = ref(false)
+
+// Load and play start theme music
+const loadStartThemeMusic = async () => {
+  try {
+    const audioModule = await import('@/assets/start_theme.mp3')
+    const audioSrc = typeof audioModule.default === 'string' 
+      ? audioModule.default 
+      : typeof audioModule === 'string' 
+        ? audioModule 
+        : ''
+    
+    if (audioSrc) {
+      const audio = new Audio(audioSrc)
+      audio.loop = true
+      audio.volume = 0.3 // Lower volume for death screen atmosphere
+      audioRef.value = audio
+      
+      // Attempt to play audio
+      const playPromise = audio.play()
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            audioPlaying.value = true
+            console.log('Death screen music started')
+          })
+          .catch((error) => {
+            console.warn('Failed to play death screen music:', error)
+          })
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to load death screen music:', error)
+  }
+}
+
 // Handle enter key to restart
 const handleKeyPress = (event: KeyboardEvent) => {
   if (event.code === 'Enter') {
@@ -86,6 +123,10 @@ const handleKeyPress = (event: KeyboardEvent) => {
 }
 
 const restartGame = () => {
+  // Stop music before restarting
+  if (audioRef.value) {
+    audioRef.value.pause()
+  }
   // Refresh the entire page to restart the game
   window.location.reload()
 }
@@ -99,10 +140,15 @@ const gameStats = computed(() => ({
 
 onMounted(() => {
   window.addEventListener('keydown', handleKeyPress)
+  loadStartThemeMusic()
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyPress)
+  if (audioRef.value) {
+    audioRef.value.pause()
+    audioRef.value = undefined
+  }
 })
 </script>
 

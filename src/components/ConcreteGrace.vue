@@ -42,6 +42,12 @@
       @enter-game="enterGame"
     />
 
+    <!-- Atmospheric Cutscene -->
+    <AtmosphericCutscene 
+      v-if="showAtmosphericCutscene"
+      @complete="completeAtmosphericCutscene"
+    />
+
     <!-- Death Screen -->
     <DeathScreen 
       v-if="showDeathScreen"
@@ -86,6 +92,7 @@ import DebugDialog from './DebugDialog.vue'
 import AaltoCutscene from './AaltoCutscene.vue'
 import StartScreen from './StartScreen.vue'
 import DeathScreen from './DeathScreen.vue'
+import AtmosphericCutscene from './AtmosphericCutscene.vue'
 
 const gameStore = useConcreteGraceStore()
 const gameContainer = ref<HTMLDivElement>()
@@ -150,6 +157,9 @@ const showCutscene = ref(false)
 
 // Start screen state
 const showStartScreen = ref(true)
+
+// Atmospheric cutscene state
+const showAtmosphericCutscene = ref(false)
 
 // Death screen state
 const showDeathScreen = ref(false)
@@ -336,8 +346,13 @@ function toggleDebug() {
 
 function enterGame() {
   showStartScreen.value = false
+  showAtmosphericCutscene.value = true
+}
+
+function completeAtmosphericCutscene() {
+  showAtmosphericCutscene.value = false
   gameStartTime.value = new Date() // Start timing the session
-  // Initialize game after hiding start screen
+  // Initialize game after hiding atmospheric cutscene
   nextTick(async () => {
     initGame()
     await musicPlayer.loadAllAudio() // Load all audio assets
