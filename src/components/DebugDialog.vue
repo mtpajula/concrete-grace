@@ -141,9 +141,8 @@ const forceAaltoBuilding = () => {
   const aaltoCell = createCell('aalto', { q, r })
   const key = hexKey(q, r)
   
-  // Update both the modular system and legacy structure system
+  // Update the modular cell system
   gameStore.worldGenerator.getCells().set(key, aaltoCell)
-  gameStore.gameState.structures.set(key, aaltoCell.toStructure())
   
   console.log(`🔧 Debug: Forced Aalto building at (${q}, ${r})`)
 }
@@ -155,9 +154,8 @@ const forcePlant = () => {
   const plantCell = createCell('plant', { q, r })
   const key = hexKey(q, r)
   
-  // Update both the modular system and legacy structure system
+  // Update the modular cell system
   gameStore.worldGenerator.getCells().set(key, plantCell)
-  gameStore.gameState.structures.set(key, plantCell.toStructure())
   
   console.log(`🔧 Debug: Forced plant at (${q}, ${r})`)
 }

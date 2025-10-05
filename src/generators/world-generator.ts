@@ -2,30 +2,14 @@ import { hexKey, hexNeighbors } from '@/utils/hex-grid'
 import { createCell, getSpawnableCellTypes, getSpawnConfig, getSpecialSpawnCellTypes, CELL_REGISTRY } from '@/cells/cell-registry'
 import type { BaseCell } from '@/cells/base-cell'
 
-// Legacy Structure interface for backward compatibility
-export interface Structure {
-  id: string
-  position: { q: number, r: number }
-  type: 'brutalist' | 'aalto' | 'aalto_stool' | 'plant' | 'path' | 'ruined'
-  size: number
-  rotation: number
-  health?: number // For plants
-  discovered?: boolean // For Aalto buildings
-}
-
 export class WorldGenerator {
-  private structures = new Map<string, Structure>()
-  private cells = new Map<string, BaseCell>() // New modular cell system
+  private cells = new Map<string, BaseCell>() // Modular cell system
   private generatedChunks = new Set<string>() // Track which chunks have been generated
   private seed: number
   private CHUNK_SIZE = 50
 
   constructor(seed: number = Math.random() * 10000) {
     this.seed = seed
-  }
-
-  getStructures(): Map<string, Structure> {
-    return this.structures
   }
 
   getCells(): Map<string, BaseCell> {
@@ -127,7 +111,6 @@ export class WorldGenerator {
     
     // Remove existing cell if any
     this.cells.delete(key)
-    this.structures.delete(key)
     
     // Create cell using modular system
     const cell = createCell(cellType as any, position)
@@ -244,7 +227,7 @@ export class WorldGenerator {
     for (let q = centerQ - radius; q <= centerQ + radius; q++) {
       for (let r = centerR - radius; r <= centerR + radius; r++) {
         // Skip if already has something
-        if (this.structures.has(hexKey(q, r))) continue
+        if (this.cells.has(hexKey(q, r))) continue
 
         // Ensure player starting area (0,0) is always clear - expand safe zone  
         if (Math.abs(q - centerQ) <= 8 && Math.abs(r - centerR) <= 8 && Math.abs(q - centerQ + r - centerR) <= 8) {
@@ -310,11 +293,10 @@ export class WorldGenerator {
   }
 
   /**
-   * Add a cell to both the new modular system and legacy structure system
+   * Add a cell to the modular cell system
    */
   private addCell(cell: BaseCell): void {
     const key = hexKey(cell.position.q, cell.position.r)
     this.cells.set(key, cell)
-    this.structures.set(key, cell.toStructure())
   }
 }

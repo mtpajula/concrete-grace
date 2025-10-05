@@ -1,14 +1,13 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { hexKey, hexDirections, type Position } from '@/utils/hex-grid'
-import { WorldGenerator, type Structure } from '@/generators/world-generator'
+import { WorldGenerator } from '@/generators/world-generator'
 import { createCell, getSpawnConfig, CELL_REGISTRY } from '@/cells/cell-registry'
 import type { BaseCell, CellInteractionResult } from '@/cells/base-cell'
 
 export interface GameState {
   playerPosition: Position
   worldSeed: number
-  structures: Map<string, Structure>
   discoveredAaltoBuildings: Set<string>
   dialogueHistory: DialogueEntry[]
   plantsEaten: number // Count of destroyed plant life
@@ -32,7 +31,6 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
   const gameState = ref<GameState>({
     playerPosition: { q: 0, r: 0 },
     worldSeed: Math.random() * 10000,
-    structures: new Map<string, Structure>(),
     discoveredAaltoBuildings: new Set<string>(),
     dialogueHistory: [],
     plantsEaten: 0,
@@ -74,27 +72,24 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
   // Generate playable chunk using the new generator
   function generateChunk(chunkQ: number, chunkR: number) {
     worldGenerator.generatePlayableChunk(chunkQ, chunkR)
-    // Merge the new generated structures into our game state (only new ones)
-    for (const [key, structure] of worldGenerator.getStructures()) {
-      if (!gameState.value.structures.has(key)) {
-        gameState.value.structures.set(key, structure)
-        console.log(`Added structure: ${structure.id} at key: "${key}"`)
-      }
-    }
   }
 
   // Unified plant consumption using modular cell system
   function consumePlant(identifier: string | { q: number, r: number }): boolean {
     let cell: BaseCell | null = null
-    let position: { q: number, r: number }
+    let position: { q: number, r: number } | null = null
 
     if (typeof identifier === 'string') {
-      // Consume by structure ID - find the cell
-      const structure = gameState.value.structures.get(identifier)
-      if (structure) {
-        position = structure.position
-        cell = getCellAt(position.q, position.r)
-      } else {
+      // Consume by cell ID - find the cell directly
+      const cells = worldGenerator.getCells()
+      for (const [key, c] of cells) {
+        if (c.id === identifier) {
+          position = c.position
+          cell = c
+          break
+        }
+      }
+      if (!cell || !position) {
         return false
       }
     } else {
@@ -104,7 +99,7 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
     }
     
     // Validate plant cell
-    if (!cell || cell.type !== 'plant') {
+    if (!cell || cell.type !== 'plant' || !position) {
       return false
     }
 
@@ -124,9 +119,8 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
         const ruinedCell = createCell(result.transformsTo, position)
         const key = hexKey(position.q, position.r)
         
-        // Update both systems
+        // Update the modular cell system
         worldGenerator.getCells().set(key, ruinedCell)
-        gameState.value.structures.set(key, ruinedCell.toStructure())
       }
       
       return true
@@ -144,11 +138,12 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
   function movePlayer(direction: number): { moved: boolean; message?: string } {
     console.log(`MovePlayer called with direction: ${direction}`)
     const delta = hexDirections[direction]
-    console.log(`Delta: q=${delta.q}, r=${delta.r}`)
     
     if (!delta) {
       return { moved: false }
     }
+    
+    console.log(`Delta: q=${delta.q}, r=${delta.r}`)
     
     const newQ = gameState.value.playerPosition.q + delta.q
     const newR = gameState.value.playerPosition.r + delta.r
@@ -233,23 +228,6 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
   // Get game status
   const plantsDestroyed = computed(() => gameState.value.plantsEaten)
   const discoveredBuildings = computed(() => gameState.value.discoveredAaltoBuildings.size)
-  const totalStructures = computed(() => gameState.value.structures.size)
-
-  // Cleanup function to convert depleted plants to ruined land
-  function cleanupDepletedPlants() {
-    Array.from(gameState.value.structures.entries()).forEach(([key, structure]) => {
-      if (structure.type === 'plant' && structure.health !== undefined && structure.health <= 0) {
-        const ruinedLand = {
-          id: `ruined_${structure.position.q}_${structure.position.r}`,
-          position: structure.position,
-          type: 'ruined' as const,
-          size: 1,
-          rotation: 0
-        }
-        gameState.value.structures.set(key, ruinedLand)
-      }
-    })
-  }
 
   // Debug helper - get cell at player position
   function debugPlayerPosition() {
@@ -267,7 +245,6 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
         // Computed
         plantsDestroyed,
         discoveredBuildings,
-        totalStructures,
 
     // Methods
     getCellAt,
@@ -279,7 +256,6 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
     initWorld,
     isBlocked,
     debugPlayerPosition,
-    cleanupDepletedPlants,
     // Spawn parameter management
     updateSpawnConfig: (cellType: string, config: any) => {
       const registryEntry = CELL_REGISTRY[cellType as any]

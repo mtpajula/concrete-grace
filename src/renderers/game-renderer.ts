@@ -1,6 +1,5 @@
 import { hexToPixel } from '@/utils/hex-grid'
 import type { BaseCell } from '@/cells/base-cell'
-import type { Structure } from '@/generators/world-generator'
 import { createCell } from '@/cells/cell-registry'
 
 export interface RenderConfig {

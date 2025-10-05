@@ -2,7 +2,7 @@
   <div ref="gameContainer" class="concrete-grace">
     <!-- Game Content (hidden when start screen is shown) -->
     <template v-if="!showStartScreen">
-      <div v-if="!gameStore.gameState.structures.size" class="loading">
+      <div v-if="!gameStore.worldGenerator.getCells().size" class="loading">
         Generating concrete world...
       </div>
 

@@ -213,21 +213,6 @@ export abstract class BaseCell {
   }
 
   /**
-   * Convert to Structure interface for compatibility
-   */
-  public toStructure() {
-    return {
-      id: this.id,
-      position: this.position,
-      type: this.type,
-      size: this.size,
-      rotation: this.rotation,
-      health: this.health,
-      discovered: this.discovered
-    }
-  }
-
-  /**
    * Create a copy of this cell with new position
    */
   public clone(newPosition?: CellPosition): BaseCell {
