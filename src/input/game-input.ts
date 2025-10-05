@@ -7,7 +7,6 @@ export interface InputCallbacks {
   interactWithAalto: () => void
   toggleDebug: () => void
   debugPlayerPosition: () => void
-  forceCreatePlant: () => void
   cleanupDepletedPlants: () => void
   generateNearbyChunks: () => void
   showMessage: (message: string) => void
@@ -76,9 +75,6 @@ export class GameInputHandler {
             break
           case 'debugPosition':
             this.callbacks.debugPlayerPosition()
-            break
-          case 'forcePlant':
-            this.callbacks.forceCreatePlant()
             break
           case 'cleanupPlants':
             this.callbacks.cleanupDepletedPlants()

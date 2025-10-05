@@ -55,20 +55,20 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
     return worldGenerator.getCells().get(key) || null
   }
 
-  // Get nearby structures for rendering (hexagonal area) - legacy compatibility
-  function getNearbyStructures(centerQ: number, centerR: number, radius: number = 12): Structure[] {
-    const structureList: Structure[] = []
+  // Get nearby cells for rendering (hexagonal area) - optimized cell-based approach
+  function getNearbyCells(centerQ: number, centerR: number, radius: number = 12): BaseCell[] {
+    const cellList: BaseCell[] = []
     
     for (let q = centerQ - radius; q <= centerQ + radius; q++) {
       for (let r = centerR - radius; r <= centerR + radius; r++) {
         const cell = getCellAt(q, r)
         if (cell) {
-          structureList.push(cell.toStructure())
+          cellList.push(cell)
         }
       }
     }
 
-    return structureList
+    return cellList
   }
 
   // Generate playable chunk using the new generator
@@ -234,33 +234,10 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
     })
   }
 
-  // Debug helper
+  // Debug helper - get cell at player position
   function debugPlayerPosition() {
     const { q, r } = gameState.value.playerPosition
-    const cell = getCellAt(q, r)
-    return cell
-  }
-
-  // Test helper - force create plant at player position
-  function forceCreatePlantAtPlayer() {
-    const { q, r } = gameState.value.playerPosition
-    const key = hexKey(q, r)
-    
-    // Remove existing structure
-    gameState.value.structures.delete(key)
-    
-    // Create new plant
-    const plant = {
-      id: `plant_${q}_${r}`,
-      position: { q, r },
-      type: 'plant' as const,
-      size: 1,
-      rotation: 0,
-      health: 100
-    }
-    
-    gameState.value.structures.set(key, plant)
-    return plant
+    return getCellAt(q, r)
   }
 
   return {
@@ -277,7 +254,7 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
 
     // Methods
     getCellAt,
-    getNearbyStructures,
+    getNearbyCells,
     generateChunk,
     consumePlant,
     consumePlantAtPosition,
@@ -285,7 +262,6 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
     initWorld,
     isBlocked,
     debugPlayerPosition,
-    forceCreatePlantAtPlayer,
     cleanupDepletedPlants,
     // Spawn parameter management
     updateSpawnConfig: (cellType: string, config: any) => {

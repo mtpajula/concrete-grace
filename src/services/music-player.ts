@@ -43,8 +43,8 @@ export class MusicPlayerService {
    */
   async loadBackgroundMusic(): Promise<void> {
     try {
-      const module = await import('@/assets/music/background.mp3')
-      const audioSrc = module.default || module
+      const module = await import('@/assets/game_music.mp3')
+      const audioSrc = module.default as string
       
       this.backgroundMusic = new Audio(audioSrc)
       this.backgroundMusic.loop = true
@@ -61,16 +61,14 @@ export class MusicPlayerService {
    */
   async loadSoundEffects(): Promise<void> {
     const soundEffects = [
-      { name: 'plant_consume', src: '@/assets/sounds/plant_consume.mp3' },
-      { name: 'aalto_discover', src: '@/assets/sounds/aalto_discover.mp3' },
-      { name: 'footstep', src: '@/assets/sounds/footstep.mp3' },
-      { name: 'health_low', src: '@/assets/sounds/health_low.mp3' }
+      { name: 'eating', src: '@/assets/eating_sound.mp3' },
+      { name: 'stool', src: '@/assets/stool_sound.mp3' }
     ]
 
     for (const effect of soundEffects) {
       try {
         const module = await import(/* @vite-ignore */ effect.src)
-        const audioSrc = module.default || module
+        const audioSrc = module.default as string
         
         const audio = new Audio(audioSrc)
         audio.volume = this.masterVolume * 0.5 // Sound effects medium volume

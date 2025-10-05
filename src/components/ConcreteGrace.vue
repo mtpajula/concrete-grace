@@ -65,6 +65,7 @@ import { GameRenderer, type RenderConfig } from '@/renderers/game-renderer'
 import { GameInputHandler, type ExtendedInputCallbacks } from '@/input/game-input'
 import { hexDirections } from '@/utils/hex-grid'
 import { dialogueService, type DialogueEntry, type DialogueOption } from '@/services/dialogue-service'
+import { MusicPlayerService } from '@/services/music-player'
 import GameHUD from './GameHUD.vue'
 import GameMessages from './GameMessages.vue'
 import GameDialogue from './GameDialogue.vue'
@@ -139,10 +140,8 @@ const showDeathScreen = ref(false)
 // Game session tracking
 const gameStartTime = ref<Date | null>(null)
 
-// Game audio
-let gameAudio: HTMLAudioElement | null = null
-let eatingSound: HTMLAudioElement | null = null
-let stoolSound: HTMLAudioElement | null = null
+// Game audio - using centralized service
+const musicPlayer = MusicPlayerService.getInstance()
 
 // Initialize game systems
 async function initGame() {
@@ -188,7 +187,6 @@ function initInputHandler() {
     interactWithAalto: handleAaltoInteraction,
     toggleDebug: toggleDebug,
     debugPlayerPosition: gameStore.debugPlayerPosition,
-    forceCreatePlant: gameStore.forceCreatePlantAtPlayer,
     cleanupDepletedPlants: gameStore.cleanupDepletedPlants,
     generateNearbyChunks,
     moveToHex: handleMouseMoveToHex,
@@ -250,9 +248,7 @@ function handlePlantConsumption() {
 
   if (cell?.type === 'aalto') {
     // Pause game music when entering architect scene
-    if (gameAudio && !gameAudio.paused) {
-      gameAudio.pause()
-    }
+    musicPlayer.stopBackgroundMusic()
     
     // Enter Aalto building cutscene
     showCutscene.value = true
@@ -260,12 +256,7 @@ function handlePlantConsumption() {
     const consumed = gameStore.consumePlantAtPosition(q, r)
     if (consumed) {
       // Play eating sound effect
-      if (eatingSound) {
-        eatingSound.currentTime = 0 // Reset to beginning
-        eatingSound.play().catch(() => {
-          console.log('Eating sound play failed')
-        })
-      }
+      musicPlayer.playSoundEffect('eating')
       showMessage(`🌱 Plant consumed! Health +10. Plants destroyed: ${gameStore.plantsDestroyed}`)
     }
   } else {
@@ -314,98 +305,27 @@ function toggleDebug() {
   showDebug.value = !showDebug.value
 }
 
-async function initGameMusic() {
-  try {
-    const audioModule = await import('@/assets/game_music.mp3')
-    const audioSrc = typeof audioModule.default === 'string' 
-      ? audioModule.default 
-      : typeof audioModule === 'string' 
-        ? audioModule 
-        : ''
-    
-    if (audioSrc) {
-      gameAudio = new Audio(audioSrc)
-      gameAudio.loop = true
-      gameAudio.volume = 0.2 // Low volume for ambient background
-      
-      // Try to start game music
-      try {
-        await gameAudio.play()
-        console.log('Game music started')
-      } catch (error) {
-        console.log('Game audio autoplay prevented, will start on user interaction')
-      }
-    }
-  } catch (error) {
-    console.warn('Failed to load game music:', error)
-  }
-}
-
-async function initSoundEffects() {
-  try {
-    // Load eating sound
-    const eatingModule = await import('@/assets/eating_sound.mp3')
-    const eatingSrc = typeof eatingModule.default === 'string' 
-      ? eatingModule.default 
-      : typeof eatingModule === 'string' 
-        ? eatingModule 
-        : ''
-    
-    if (eatingSrc) {
-      eatingSound = new Audio(eatingSrc)
-      eatingSound.volume = 0.5 // Medium volume for sound effect
-      eatingSound.preload = 'auto'
-    }
-    
-    // Load stool sound
-    const stoolModule = await import('@/assets/stool_sound.mp3')
-    const stoolSrc = typeof stoolModule.default === 'string' 
-      ? stoolModule.default 
-      : typeof stoolModule === 'string' 
-        ? stoolModule 
-        : ''
-    
-    if (stoolSrc) {
-      stoolSound = new Audio(stoolSrc)
-      stoolSound.volume = 0.6 // Slightly higher volume for impact
-      stoolSound.preload = 'auto'
-    }
-    
-    console.log('Sound effects loaded')
-  } catch (error) {
-    console.warn('Failed to load sound effects:', error)
-  }
-}
 
 function enterGame() {
   showStartScreen.value = false
   gameStartTime.value = new Date() // Start timing the session
   // Initialize game after hiding start screen
-  nextTick(() => {
+  nextTick(async () => {
     initGame()
-    initGameMusic() // Start game music
-    initSoundEffects() // Load sound effects
+    await musicPlayer.loadAllAudio() // Load all audio assets
+    musicPlayer.playBackgroundMusic() // Start game music
   })
 }
 
 function handlePlayerMove(direction: number) {
   const result = gameStore.movePlayer(direction)
   
-  // Start game music on first user interaction if not already playing
-  if (gameAudio && gameAudio.paused) {
-    gameAudio.play().catch(() => {
-      console.log('Game audio play failed after user interaction')
-    })
-  }
+  // Start game music on first user interaction
+  musicPlayer.playBackgroundMusic()
   
   // Play stool sound if stepping on Aalto stool
   if (result.message && result.message.includes('stool')) {
-    if (stoolSound) {
-      stoolSound.currentTime = 0 // Reset to beginning
-      stoolSound.play().catch(() => {
-        console.log('Stool sound play failed')
-      })
-    }
+    musicPlayer.playSoundEffect('stool')
   }
   
   // Show movement message if available
@@ -416,9 +336,7 @@ function handlePlayerMove(direction: number) {
   // Check if player should die (health <= 0)
   if (gameStore.gameState.playerHealth <= 0) {
     showDeathScreen.value = true
-    if (gameAudio) {
-      gameAudio.pause() // Stop game music on death
-    }
+    musicPlayer.stopBackgroundMusic()
     return result
   }
   
@@ -440,11 +358,7 @@ function completeAaltoCutscene() {
   showCutscene.value = false
   
   // Resume game music when returning to the world
-  if (gameAudio && gameAudio.paused) {
-    gameAudio.play().catch(() => {
-      console.log('Game music autoplay prevented after architect scene')
-    })
-  }
+  musicPlayer.playBackgroundMusic()
   
   showMessage('🏛️ You return to the endless world...')
 }
@@ -479,20 +393,7 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener('resize', resizeCanvas)
   inputHandler?.cleanup()
-  
-  // Cleanup game audio
-  if (gameAudio) {
-    gameAudio.pause()
-    gameAudio = null
-  }
-  
-  // Cleanup sound effects
-  if (eatingSound) {
-    eatingSound = null
-  }
-  if (stoolSound) {
-    stoolSound = null
-  }
+  musicPlayer.stopBackgroundMusic()
 })
 </script>
 

@@ -1,20 +1,11 @@
 import { hexToPixel } from '@/utils/hex-grid'
 import type { BaseCell } from '@/cells/base-cell'
+import type { Structure } from '@/generators/world-generator'
 
 export interface RenderConfig {
   tileSize: number
   canvasWidth: number
   canvasHeight: number
-}
-
-export interface Structure {
-  id: string
-  position: { q: number, r: number }
-  type: 'brutalist' | 'aalto' | 'aalto_stool' | 'plant' | 'path' | 'ruined'
-  size: number
-  rotation: number
-  health?: number
-  discovered?: boolean
 }
 
 const STRUCTURE_COLORS = {
