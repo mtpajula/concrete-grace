@@ -17,6 +17,31 @@ export class WorldGenerator {
   }
 
   /**
+   * Debug function: Force regenerate a chunk (for testing spawn config changes)
+   */
+  forceRegenerateChunk(chunkQ: number, chunkR: number): void {
+    const chunkKey = `${chunkQ},${chunkR}`
+    
+    // Remove from generated chunks set
+    this.generatedChunks.delete(chunkKey)
+    
+    // Clear existing cells in this chunk
+    const chunkStartQ = chunkQ * this.CHUNK_SIZE
+    const chunkStartR = chunkR * this.CHUNK_SIZE
+    const radius = 20
+    
+    for (let q = chunkStartQ - radius; q <= chunkStartQ + radius; q++) {
+      for (let r = chunkStartR - radius; r <= chunkStartR + radius; r++) {
+        const key = hexKey(q, r)
+        this.cells.delete(key)
+      }
+    }
+    
+    // Regenerate the chunk
+    this.generatePlayableChunk(chunkQ, chunkR)
+  }
+
+  /**
    * Generate special spawn cells (like Aalto buildings) using cell registry configuration
    */
   private generateSpecialSpawnCells(centerQ: number, centerR: number, radius: number): void {
@@ -115,6 +140,11 @@ export class WorldGenerator {
     // Create cell using modular system
     const cell = createCell(cellType as any, position)
     this.addCell(cell)
+    
+    // Log only Aalto building generation
+    if (cellType === 'aalto') {
+      console.log(`🏛️ Aalto building generated at (${position.q}, ${position.r})`)
+    }
   }
 
   // Generate a playable world chunk with guaranteed paths

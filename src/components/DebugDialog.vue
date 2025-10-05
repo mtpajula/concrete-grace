@@ -87,6 +87,19 @@
               </label>
             </div>
           </div>
+          
+          <div class="debug-section">
+            <h4>🔄 Chunk Management</h4>
+            <button 
+              @click="regenerateCurrentChunk" 
+              class="debug-button regenerate-button"
+            >
+              🔄 Regenerate Current Chunk
+            </button>
+            <p class="debug-description">
+              Force regenerate the current chunk with updated spawn parameters
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -94,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useConcreteGraceStore } from '@/stores/concrete-grace'
 import { hexKey } from '@/utils/hex-grid'
 import { createCell } from '@/cells/cell-registry'
@@ -124,10 +137,38 @@ const discoveredAaltoCount = computed(() => gameStore.gameState.discoveredAaltoB
 
 // Spawn parameters
 const spawnConfigs = computed(() => gameStore.getAllSpawnConfigs())
-const aaltoConfig = computed(() => gameStore.getSpawnConfig('aalto') || {})
+
+// Create reactive references for spawn configs
+const aaltoConfig = ref({
+  chance: 0.05,
+  maxPerChunk: 1,
+  requiresPath: true
+})
+
+// Initialize aalto config from store
+const initializeAaltoConfig = () => {
+  const storeConfig = gameStore.getSpawnConfig('aalto')
+  if (storeConfig) {
+    aaltoConfig.value = { ...storeConfig }
+  }
+}
+
+// Initialize on mount
+onMounted(() => {
+  initializeAaltoConfig()
+})
 
 const updateAaltoConfig = () => {
   gameStore.updateSpawnConfig('aalto', aaltoConfig.value)
+}
+
+const regenerateCurrentChunk = () => {
+  const { q, r } = gameStore.gameState.playerPosition
+  // Convert player position to chunk coordinates
+  const chunkQ = Math.floor(q / 50) // CHUNK_SIZE is 50
+  const chunkR = Math.floor(r / 50)
+  
+  gameStore.forceRegenerateChunk(chunkQ, chunkR)
 }
 
 const toggleDebug = () => {

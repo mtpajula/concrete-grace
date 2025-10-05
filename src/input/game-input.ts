@@ -11,6 +11,7 @@ export interface InputCallbacks {
   generateNearbyChunks: () => void
   showMessage: (message: string) => void
   moveToHex: (q: number, r: number) => void
+  findClosestAalto: () => void
 }
 
 export class GameInputHandler {
@@ -78,6 +79,9 @@ export class GameInputHandler {
             break
           case 'cleanupPlants':
             this.callbacks.cleanupDepletedPlants()
+            break
+          case 'findAalto':
+            this.callbacks.findClosestAalto()
             break
         }
   }

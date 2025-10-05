@@ -136,19 +136,14 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
 
   // Move player in hex grid (direction: 0-5 for hex directions)
   function movePlayer(direction: number): { moved: boolean; message?: string } {
-    console.log(`MovePlayer called with direction: ${direction}`)
     const delta = hexDirections[direction]
     
     if (!delta) {
       return { moved: false }
     }
     
-    console.log(`Delta: q=${delta.q}, r=${delta.r}`)
-    
     const newQ = gameState.value.playerPosition.q + delta.q
     const newR = gameState.value.playerPosition.r + delta.r
-    console.log(`Current position: q=${gameState.value.playerPosition.q}, r=${gameState.value.playerPosition.r}`)
-    console.log(`New position: q=${newQ}, r=${newR}`)
 
     // Check bounds
     if (Math.abs(newQ) > WORLD_SIZE || Math.abs(newR) > WORLD_SIZE) {
@@ -235,6 +230,53 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
     return getCellAt(q, r)
   }
 
+  // Find closest Aalto building and return distance and direction
+  function findClosestAaltoBuilding(): { distance: number; direction: string; position: {q: number, r: number} } | null {
+    const playerPos = gameState.value.playerPosition
+    let closestBuilding: BaseCell | null = null
+    let closestDistance = Infinity
+
+    // Search through all cells to find Aalto buildings
+    for (const [key, cell] of worldGenerator.getCells()) {
+      if (cell.type === 'aalto') {
+        const distance = Math.abs(cell.position.q - playerPos.q) + 
+                        Math.abs(cell.position.r - playerPos.r) + 
+                        Math.abs(cell.position.q + cell.position.r - playerPos.q - playerPos.r)
+        const hexDistance = distance / 2
+
+        if (hexDistance < closestDistance) {
+          closestDistance = hexDistance
+          closestBuilding = cell
+        }
+      }
+    }
+
+    if (!closestBuilding) {
+      return null
+    }
+
+    // Calculate direction
+    const deltaQ = closestBuilding.position.q - playerPos.q
+    const deltaR = closestBuilding.position.r - playerPos.r
+    
+    let direction = ''
+    if (deltaQ > 0 && deltaR === 0) direction = 'East'
+    else if (deltaQ > 0 && deltaR < 0) direction = 'Northeast'
+    else if (deltaQ === 0 && deltaR < 0) direction = 'Northwest'
+    else if (deltaQ < 0 && deltaR === 0) direction = 'West'
+    else if (deltaQ < 0 && deltaR > 0) direction = 'Southwest'
+    else if (deltaQ === 0 && deltaR > 0) direction = 'Southeast'
+    else if (deltaQ > 0 && deltaR > 0) direction = 'Southeast'
+    else if (deltaQ < 0 && deltaR < 0) direction = 'Northwest'
+    else direction = 'Unknown'
+
+    return {
+      distance: Math.round(closestDistance * 10) / 10, // Round to 1 decimal
+      direction,
+      position: closestBuilding.position
+    }
+  }
+
   return {
     // State
     gameState,
@@ -256,6 +298,7 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
     initWorld,
     isBlocked,
     debugPlayerPosition,
+    findClosestAaltoBuilding,
     // Spawn parameter management
     updateSpawnConfig: (cellType: string, config: any) => {
       const registryEntry = CELL_REGISTRY[cellType as any]
@@ -273,6 +316,10 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
         }
       })
       return configs
+    },
+    // Debug functions
+    forceRegenerateChunk: (chunkQ: number, chunkR: number) => {
+      worldGenerator.forceRegenerateChunk(chunkQ, chunkR)
     }
   }
 })

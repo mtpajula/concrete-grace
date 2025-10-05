@@ -45,7 +45,8 @@ export const ACTION_KEYS: ActionMapping[] = [
   { code: 'KeyH', action: 'toggleDebug', description: 'Toggle debug dialog' },
   { code: 'KeyF', action: 'debugPosition', description: 'Debug player position' },
   { code: 'KeyG', action: 'forcePlant', description: 'Force create plant' },
-  { code: 'KeyK', action: 'cleanupPlants', description: 'Cleanup depleted plants' }
+  { code: 'KeyK', action: 'cleanupPlants', description: 'Cleanup depleted plants' },
+  { code: 'KeyJ', action: 'findAalto', description: 'Find closest Aalto building' }
 ]
 
 /**

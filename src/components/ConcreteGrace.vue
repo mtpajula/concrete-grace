@@ -55,11 +55,24 @@
       v-if="showCutscene"
       @complete="completeAaltoCutscene"
     />
+
+    <!-- Coordinates Display -->
+    <div v-if="showCoordinates" class="coordinates-display">
+      <div class="coordinate-item">
+        <strong>Player:</strong> ({{ gameStore.gameState.playerPosition.q }}, {{ gameStore.gameState.playerPosition.r }})
+      </div>
+      <div v-if="closestAalto" class="coordinate-item">
+        <strong>Aalto:</strong> ({{ closestAalto.position.q }}, {{ closestAalto.position.r }}) - {{ closestAalto.distance }} units {{ closestAalto.direction }}
+      </div>
+      <div v-else class="coordinate-item">
+        <strong>Aalto:</strong> None found
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useConcreteGraceStore } from '@/stores/concrete-grace'
 import { GameRenderer, type RenderConfig } from '@/renderers/game-renderer'
 import { GameInputHandler, type ExtendedInputCallbacks } from '@/input/game-input'
@@ -127,6 +140,10 @@ const recentDialogue = ref<DialogueEntry[]>([])
 
 // Debug state
 const showDebug = ref(false)
+const showCoordinates = ref(false)
+
+// Computed properties
+const closestAalto = computed(() => gameStore.findClosestAaltoBuilding())
 
 // Cutscene state
 const showCutscene = ref(false)
@@ -190,7 +207,8 @@ function initInputHandler() {
     cleanupDepletedPlants: gameStore.cleanupDepletedPlants,
     generateNearbyChunks,
     moveToHex: handleMouseMoveToHex,
-    showMessage: showMessage
+    showMessage: showMessage,
+    findClosestAalto: handleFindClosestAalto
   }
   
   inputHandler = new GameInputHandler(callbacks, TILE_SIZE)
@@ -305,6 +323,10 @@ function handleMouseMoveToHex(q: number, r: number) {
 
 function showMessage(message: string) {
   messagesRef.value?.showMessage(message)
+}
+
+function handleFindClosestAalto() {
+  showCoordinates.value = !showCoordinates.value
 }
 
 function toggleDebug() {
@@ -443,5 +465,27 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
+}
+
+.coordinates-display {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.coordinate-item {
+  margin-bottom: 5px;
+}
+
+.coordinate-item:last-child {
+  margin-bottom: 0;
 }
 </style>
