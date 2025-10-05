@@ -6,6 +6,14 @@ import { BaseCell, type CellType, type CellRenderInfo, type CellInteractionResul
 import { ASSET_KEYS } from '@/assets/asset-registry'
 
 export class BrutalistCell extends BaseCell {
+  private selectedAsset: string
+
+  constructor(q: number, r: number) {
+    super(q, r)
+    // Select the asset once when the cell is created
+    const brutalistAssets = [ASSET_KEYS.BRUTAL_1, ASSET_KEYS.BRUTAL_2, ASSET_KEYS.BRUTAL_3, ASSET_KEYS.BRUTAL_4]
+    this.selectedAsset = brutalistAssets[Math.floor(Math.random() * brutalistAssets.length)]
+  }
   protected getType(): CellType {
     return 'brutalist'
   }
@@ -19,7 +27,7 @@ export class BrutalistCell extends BaseCell {
       color: '#666666',
       priority: 5,
       imageAsset: 'brutalist',
-      getImage: this.createGetImageFunction(ASSET_KEYS.BRUTAL_1),
+      getImage: this.createGetImageFunction(this.selectedAsset),
       fallbackRenderer: (ctx, x, y, size) => {
         const hexSize = size * 0.7 // Smaller fallback to fit within cell
         ctx.fillStyle = '#666666'

@@ -12,6 +12,8 @@ import plantImage from '@/assets/plant.png'
 import plantEatenImage from '@/assets/plant_eaten.png'
 import brutal1Image from '@/assets/structures/brutal_1.png'
 import brutal2Image from '@/assets/structures/brutal_2.png'
+import brutal3Image from '@/assets/structures/brutal_3.png'
+import brutal4Image from '@/assets/structures/brutal_4.png'
 import playerImage from '@/assets/player.png'
 
 /**
@@ -24,6 +26,8 @@ export const ASSET_KEYS = {
   PLANT_EATEN: 'plant_eaten',
   BRUTAL_1: 'brutal_1',
   BRUTAL_2: 'brutal_2',
+  BRUTAL_3: 'brutal_3',
+  BRUTAL_4: 'brutal_4',
   PLAYER: 'player'
 } as const
 
@@ -38,6 +42,8 @@ export function registerGameAssets(): void {
   CellAssetLoader.registerAsset(ASSET_KEYS.PLANT_EATEN, () => Promise.resolve({ default: plantEatenImage }))
   CellAssetLoader.registerAsset(ASSET_KEYS.BRUTAL_1, () => Promise.resolve({ default: brutal1Image }))
   CellAssetLoader.registerAsset(ASSET_KEYS.BRUTAL_2, () => Promise.resolve({ default: brutal2Image }))
+  CellAssetLoader.registerAsset(ASSET_KEYS.BRUTAL_3, () => Promise.resolve({ default: brutal3Image }))
+  CellAssetLoader.registerAsset(ASSET_KEYS.BRUTAL_4, () => Promise.resolve({ default: brutal4Image }))
   CellAssetLoader.registerAsset(ASSET_KEYS.PLAYER, () => Promise.resolve({ default: playerImage }))
   
   console.log('Game assets registered with CellAssetLoader')
