@@ -3,6 +3,7 @@
  */
 
 import { BaseCell, type CellType, type CellRenderInfo, type CellInteractionResult } from './base-cell'
+import { ASSET_KEYS } from '@/assets/asset-registry'
 
 export class PlantCell extends BaseCell {
   protected getType(): CellType {
@@ -18,7 +19,7 @@ export class PlantCell extends BaseCell {
       color: '#228B22',
       priority: 3,
       imageAsset: 'plant',
-      getImage: this.createGetImageFunction('@/assets/plant.png'),
+      getImage: this.createGetImageFunction(ASSET_KEYS.PLANT),
       fallbackRenderer: (ctx, x, y, size) => {
         const plantSize = size * 0.3 // Smaller plant to fit within cell
         // Stem

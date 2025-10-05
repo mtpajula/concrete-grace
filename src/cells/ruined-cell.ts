@@ -3,6 +3,7 @@
  */
 
 import { BaseCell, type CellType, type CellRenderInfo, type CellInteractionResult } from './base-cell'
+import { ASSET_KEYS } from '@/assets/asset-registry'
 
 export class RuinedCell extends BaseCell {
   protected getType(): CellType {
@@ -14,7 +15,7 @@ export class RuinedCell extends BaseCell {
       color: '#8B4513',
       priority: 2,
       imageAsset: 'plant_eaten',
-      getImage: this.createGetImageFunction('@/assets/plant_eaten.png'),
+      getImage: this.createGetImageFunction(ASSET_KEYS.PLANT_EATEN),
       fallbackRenderer: (ctx, x, y, size) => {
         const hexSize = size * 0.6 // Smaller ruined area
         const contaminatedSize = hexSize * 0.6

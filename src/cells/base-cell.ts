@@ -3,7 +3,7 @@
  * Provides common interface and behavior for all cells
  */
 
-export type CellType = 'brutalist' | 'aalto' | 'aalto_stool' | 'plant' | 'path' | 'ruined'
+export type CellType = 'brutalist' | 'aalto' | 'aalto_stool' | 'plant' | 'path' | 'ruined' | 'player'
 
 export interface CellPosition {
   q: number
@@ -32,6 +32,16 @@ export interface CellInteractionResult {
 export class CellAssetLoader {
   private static loadedAssets = new Map<string, HTMLImageElement>()
   private static loadingPromises = new Map<string, Promise<HTMLImageElement | null>>()
+  
+  // Asset path mapping for Vite compatibility
+  private static assetMap = new Map<string, () => Promise<any>>()
+
+  /**
+   * Register an asset for loading
+   */
+  static registerAsset(assetPath: string, importFn: () => Promise<any>): void {
+    this.assetMap.set(assetPath, importFn)
+  }
 
   /**
    * Load an image asset with caching
@@ -67,7 +77,13 @@ export class CellAssetLoader {
    */
   private static async performImageLoad(assetPath: string): Promise<HTMLImageElement | null> {
     try {
-      const module = await import(/* @vite-ignore */ assetPath)
+      const importFn = this.assetMap.get(assetPath)
+      if (!importFn) {
+        console.warn(`Asset not registered: ${assetPath}`)
+        return null
+      }
+
+      const module = await importFn()
       const imageSrc = module.default as string
       const image = new Image()
       

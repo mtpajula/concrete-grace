@@ -3,6 +3,7 @@
  */
 
 import { BaseCell, type CellType, type CellRenderInfo, type CellInteractionResult } from './base-cell'
+import { ASSET_KEYS } from '@/assets/asset-registry'
 
 export class BrutalistCell extends BaseCell {
   protected getType(): CellType {
@@ -18,7 +19,7 @@ export class BrutalistCell extends BaseCell {
       color: '#666666',
       priority: 5,
       imageAsset: 'brutalist',
-      getImage: this.createGetImageFunction('@/assets/structures/brutal_1.png'),
+      getImage: this.createGetImageFunction(ASSET_KEYS.BRUTAL_1),
       fallbackRenderer: (ctx, x, y, size) => {
         const hexSize = size * 0.7 // Smaller fallback to fit within cell
         ctx.fillStyle = '#666666'

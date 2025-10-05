@@ -3,6 +3,11 @@
  * Handles background music, sound effects, and audio state
  */
 
+// Import audio assets
+import gameMusic from '@/assets/game_music.mp3'
+import eatingSound from '@/assets/eating_sound.mp3'
+import stoolSound from '@/assets/stool_sound.mp3'
+
 export interface AudioTrack {
   name: string
   src: string
@@ -43,10 +48,7 @@ export class MusicPlayerService {
    */
   async loadBackgroundMusic(): Promise<void> {
     try {
-      const module = await import('@/assets/game_music.mp3')
-      const audioSrc = module.default as string
-      
-      this.backgroundMusic = new Audio(audioSrc)
+      this.backgroundMusic = new Audio(gameMusic)
       this.backgroundMusic.loop = true
       this.backgroundMusic.volume = this.masterVolume * 0.3 // Background music quieter
       
@@ -60,17 +62,16 @@ export class MusicPlayerService {
    * Load sound effects
    */
   async loadSoundEffects(): Promise<void> {
+    console.log('Loading sound effects...')
     const soundEffects = [
-      { name: 'eating', src: '@/assets/eating_sound.mp3' },
-      { name: 'stool', src: '@/assets/stool_sound.mp3' }
+      { name: 'eating', audio: eatingSound },
+      { name: 'stool', audio: stoolSound }
     ]
 
     for (const effect of soundEffects) {
       try {
-        const module = await import(/* @vite-ignore */ effect.src)
-        const audioSrc = module.default as string
-        
-        const audio = new Audio(audioSrc)
+        console.log(`Loading sound effect: ${effect.name}`)
+        const audio = new Audio(effect.audio)
         audio.volume = this.masterVolume * 0.5 // Sound effects medium volume
         
         this.soundEffects.set(effect.name, audio)
@@ -79,6 +80,7 @@ export class MusicPlayerService {
         console.warn(`Failed to load sound effect ${effect.name}:`, error)
       }
     }
+    console.log(`Total sound effects loaded: ${this.soundEffects.size}`)
   }
 
   /**
@@ -114,11 +116,17 @@ export class MusicPlayerService {
    * Play sound effect
    */
   async playSoundEffect(effectName: string): Promise<void> {
-    if (this.isMuted) return
+    console.log(`Attempting to play sound effect: ${effectName}`)
+    
+    if (this.isMuted) {
+      console.log('Audio is muted, skipping sound effect')
+      return
+    }
 
     const audio = this.soundEffects.get(effectName)
     if (!audio) {
       console.warn(`Sound effect not found: ${effectName}`)
+      console.log('Available sound effects:', Array.from(this.soundEffects.keys()))
       return
     }
 
@@ -131,6 +139,7 @@ export class MusicPlayerService {
       // Clone and play to allow overlapping sounds
       const audioClone = audio.cloneNode() as HTMLAudioElement
       await audioClone.play()
+      console.log(`Sound effect played: ${effectName}`)
     } catch (error) {
       console.warn(`Failed to play sound effect ${effectName}:`, error)
     }
@@ -188,10 +197,12 @@ export class MusicPlayerService {
    * Load all audio assets
    */
   async loadAllAudio(): Promise<void> {
+    console.log('Loading all audio assets...')
     await Promise.all([
       this.loadBackgroundMusic(),
       this.loadSoundEffects()
     ])
+    console.log('All audio assets loaded')
   }
 
   /**

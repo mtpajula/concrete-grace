@@ -9,6 +9,7 @@ import { AaltoBuildingCell } from './aalto-building-cell'
 import { AaltoStoolCell } from './aalto-stool-cell'
 import { PathCell } from './path-cell'
 import { RuinedCell } from './ruined-cell'
+import { PlayerCell } from './player-cell'
 import type { CellType, BaseCell } from './base-cell'
 
 export interface SpawnConfig {
@@ -74,6 +75,12 @@ export const CELL_REGISTRY: Record<CellType, CellRegistryEntry> = {
     cellClass: RuinedCell,
     spawnWeight: 0.0, // Created when plants are consumed
     description: 'Contaminated land where plants were consumed'
+  },
+  player: {
+    type: 'player',
+    cellClass: PlayerCell,
+    spawnWeight: 0.0, // Special cell - not spawned randomly
+    description: 'The player character'
   }
 }
 

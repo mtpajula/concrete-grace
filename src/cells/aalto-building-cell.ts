@@ -3,6 +3,7 @@
  */
 
 import { BaseCell, type CellType, type CellRenderInfo, type CellInteractionResult } from './base-cell'
+import { ASSET_KEYS } from '@/assets/asset-registry'
 
 export class AaltoBuildingCell extends BaseCell {
   protected getType(): CellType {
@@ -22,7 +23,7 @@ export class AaltoBuildingCell extends BaseCell {
       color: '#8B4513',
       priority: 6,
       imageAsset: 'aalto_building',
-      getImage: this.createGetImageFunction('@/assets/aalto_building.png'),
+      getImage: this.createGetImageFunction(ASSET_KEYS.AALTO_BUILDING),
       fallbackRenderer: (ctx, x, y, size) => {
         const radius = size * 0.25 // Smaller fallback to fit within cell
         ctx.fillStyle = '#8B4513'

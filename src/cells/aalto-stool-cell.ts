@@ -3,6 +3,7 @@
  */
 
 import { BaseCell, type CellType, type CellRenderInfo, type CellInteractionResult } from './base-cell'
+import { ASSET_KEYS } from '@/assets/asset-registry'
 
 export class AaltoStoolCell extends BaseCell {
   protected getType(): CellType {
@@ -14,7 +15,7 @@ export class AaltoStoolCell extends BaseCell {
       color: '#D2B48C',
       priority: 4,
       imageAsset: 'aalto_stool',
-      getImage: this.createGetImageFunction('@/assets/aalto_stool.png'),
+      getImage: this.createGetImageFunction(ASSET_KEYS.AALTO_STOOL),
       fallbackRenderer: (ctx, x, y, size) => {
         const stoolSize = size * 0.5 // Smaller stool to fit within cell
         // Main stool top

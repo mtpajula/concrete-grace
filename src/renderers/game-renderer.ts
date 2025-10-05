@@ -1,6 +1,7 @@
 import { hexToPixel } from '@/utils/hex-grid'
 import type { BaseCell } from '@/cells/base-cell'
 import type { Structure } from '@/generators/world-generator'
+import { createCell } from '@/cells/cell-registry'
 
 export interface RenderConfig {
   tileSize: number
@@ -111,7 +112,7 @@ export class GameRenderer {
     // Draw grid and cells
     this.drawHexGrid(ctx)
     await this.renderCells(ctx, cells, playerPosition)
-    this.renderPlayer(ctx)
+    await this.renderPlayer(ctx, playerPosition)
     
     // Dark gradient overlay for atmospheric depth
     this.renderDarkGradient(ctx)
@@ -234,18 +235,50 @@ export class GameRenderer {
     ctx.fill()
   }
 
-  private renderPlayer(ctx: CanvasRenderingContext2D) {
+  private async renderPlayer(ctx: CanvasRenderingContext2D, playerPosition: { q: number, r: number }) {
     const centerX = this.config.canvasWidth / 2
     const centerY = this.config.canvasHeight / 2
-    const playerSize = 24
 
-    // Fallback rendering
+    // Create player cell for rendering
+    const playerCell = createCell('player', playerPosition)
+    const renderInfo = playerCell.getRenderInfo()
+    
+    // Try to use image asset first
+    if (renderInfo.imageAsset && renderInfo.getImage) {
+      const image = await renderInfo.getImage()
+      if (image) {
+        const playerSize = this.config.tileSize * 0.8
+        ctx.drawImage(
+          image,
+          centerX - playerSize / 2,
+          centerY - playerSize / 2,
+          playerSize,
+          playerSize
+        )
+        return
+      }
+    }
+    
+    // Fall back to custom renderer or default
+    if (renderInfo.fallbackRenderer) {
+      renderInfo.fallbackRenderer(ctx, centerX, centerY, this.config.tileSize)
+    } else {
+      // Default fallback rendering
+      this.renderDefaultPlayer(ctx, centerX, centerY)
+    }
+  }
+
+  /**
+   * Default player rendering fallback
+   */
+  private renderDefaultPlayer(ctx: CanvasRenderingContext2D, x: number, y: number) {
+    const playerSize = 24
     ctx.fillStyle = '#FFD700'
     ctx.beginPath()
-    ctx.moveTo(centerX, centerY - playerSize/2)
-    ctx.lineTo(centerX + playerSize/2, centerY)
-    ctx.lineTo(centerX, centerY + playerSize/2)
-    ctx.lineTo(centerX - playerSize/2, centerY)
+    ctx.moveTo(x, y - playerSize/2)
+    ctx.lineTo(x + playerSize/2, y)
+    ctx.lineTo(x, y + playerSize/2)
+    ctx.lineTo(x - playerSize/2, y)
     ctx.closePath()
     ctx.fill()
     
