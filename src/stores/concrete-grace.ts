@@ -142,7 +142,9 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
 
   // Move player in hex grid (direction: 0-5 for hex directions)
   function movePlayer(direction: number): { moved: boolean; message?: string } {
+    console.log(`MovePlayer called with direction: ${direction}`)
     const delta = hexDirections[direction]
+    console.log(`Delta: q=${delta.q}, r=${delta.r}`)
     
     if (!delta) {
       return { moved: false }
@@ -150,6 +152,8 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
     
     const newQ = gameState.value.playerPosition.q + delta.q
     const newR = gameState.value.playerPosition.r + delta.r
+    console.log(`Current position: q=${gameState.value.playerPosition.q}, r=${gameState.value.playerPosition.r}`)
+    console.log(`New position: q=${newQ}, r=${newR}`)
 
     // Check bounds
     if (Math.abs(newQ) > WORLD_SIZE || Math.abs(newR) > WORLD_SIZE) {
@@ -163,22 +167,11 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
       return { moved: false }
     }
 
-    gameState.value.playerPosition.q = newQ
-    gameState.value.playerPosition.r = newR
-    
-    // Lose health every other move (reduced pressure for exploration)
-    if (Math.random() < 0.5) {
-      gameState.value.playerHealth = Math.max(0, gameState.value.playerHealth - 1)
-    }
-
-    // Check for health critical state
-    if (gameState.value.playerHealth <= 0) {
-      // Don't revive automatically - let the component handle death
-      return { moved: true, message: "💀 You collapsed from exhaustion!" }
-    }
-
-    // Check for cell interactions using modular system
+    // Check for cell interactions BEFORE updating position
     const cell = getCellAt(newQ, newR)
+    let shouldMove = true
+    let interactionMessage = ''
+
     if (cell) {
       const result = cell.onPlayerEnter()
       
@@ -193,10 +186,34 @@ export const useConcreteGraceStore = defineStore('concreteGrace', () => {
         
         // Check for death from health change
         if (gameState.value.playerHealth <= 0) {
+          // Update position even if dying (player should be at the cell where they died)
+          gameState.value.playerPosition.q = newQ
+          gameState.value.playerPosition.r = newR
           return { moved: true, message: result.message || "💀 You collapsed!" }
         } else if (result.message) {
-          return { moved: true, message: result.message }
+          interactionMessage = result.message
         }
+      }
+    }
+
+    // Only update position if movement is allowed
+    if (shouldMove) {
+      gameState.value.playerPosition.q = newQ
+      gameState.value.playerPosition.r = newR
+      
+      // Lose health every other move (reduced pressure for exploration)
+      if (Math.random() < 0.5) {
+        gameState.value.playerHealth = Math.max(0, gameState.value.playerHealth - 1)
+      }
+
+      // Check for health critical state
+      if (gameState.value.playerHealth <= 0) {
+        return { moved: true, message: "💀 You collapsed from exhaustion!" }
+      }
+
+      // Return with interaction message if any
+      if (interactionMessage) {
+        return { moved: true, message: interactionMessage }
       }
     }
 

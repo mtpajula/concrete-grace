@@ -244,6 +244,8 @@ function generateNearbyChunks() {
 // Game actions
 function handlePlantConsumption() {
   const { q, r } = gameStore.gameState.playerPosition
+  console.log(`Player position before plant consumption: (${q}, ${r})`)
+  
   const cell = gameStore.getCellAt(q, r)
 
   if (cell?.type === 'aalto') {
@@ -258,6 +260,10 @@ function handlePlantConsumption() {
       // Play eating sound effect
       musicPlayer.playSoundEffect('eating')
       showMessage(`🌱 Plant consumed! Health +10. Plants destroyed: ${gameStore.plantsDestroyed}`)
+      
+      // Check player position after consumption
+      const { q: newQ, r: newR } = gameStore.gameState.playerPosition
+      console.log(`Player position after plant consumption: (${newQ}, ${newR})`)
     }
   } else {
     showMessage(`❌ No consumable plant or entrance here`)

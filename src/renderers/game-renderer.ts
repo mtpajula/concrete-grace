@@ -109,8 +109,7 @@ export class GameRenderer {
     ctx.fillStyle = '#1A1A1A'
     ctx.fillRect(0, 0, this.config.canvasWidth, this.config.canvasHeight)
 
-    // Draw grid and cells
-    this.drawHexGrid(ctx)
+    // Draw cells
     await this.renderCells(ctx, cells, playerPosition)
     await this.renderPlayer(ctx, playerPosition)
     
@@ -118,38 +117,6 @@ export class GameRenderer {
     this.renderDarkGradient(ctx)
     
     this.renderDegradationEffect(ctx, plantsDestroyed)
-  }
-
-  private drawHexGrid(ctx: CanvasRenderingContext2D) {
-    ctx.strokeStyle = 'rgba(100, 100, 100, 0.2)'
-    ctx.lineWidth = 1
-    
-    const centerX = this.config.canvasWidth / 2
-    const centerY = this.config.canvasHeight / 2
-    const gridRadius = Math.max(this.config.canvasWidth, this.config.canvasHeight) / this.config.tileSize
-    
-    // Draw hex grid
-    for (let q = -gridRadius; q <= gridRadius; q++) {
-      for (let r = -gridRadius; r <= gridRadius; r++) {
-        const pixel = hexToPixel(q, r, this.config.tileSize)
-        const x = centerX + pixel.x
-        const y = centerY + pixel.y
-        
-        // Only draw if within canvas bounds
-        if (x >= 0 && x <= this.config.canvasWidth && y >= 0 && y <= this.config.canvasHeight) {
-          ctx.beginPath()
-          for (let i = 0; i < 6; i++) {
-            const angle = Math.PI / 3 * i
-            const px = x + this.config.tileSize * Math.cos(angle)
-            const py = y + this.config.tileSize * Math.sin(angle)
-            if (i === 0) ctx.moveTo(px, py)
-            else ctx.lineTo(px, py)
-          }
-          ctx.closePath()
-          ctx.stroke()
-        }
-      }
-    }
   }
 
   private async renderCells(ctx: CanvasRenderingContext2D, cells: BaseCell[], playerPosition: { q: number, r: number }) {
